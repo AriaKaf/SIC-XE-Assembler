@@ -1,30 +1,42 @@
 
+#include "parse.h"
 #include "types.h"
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 int main(int argc, char* argv[]) {
 
   SymbolTable st;
-                //value   //length //flag
-  st["SUM"]    = { 0,      0x2f0a, NO_FLAG  };
-  st["FIRST"]  = { 0,      0,      RELATIVE };
-  st["LOOP"]   = { 0XA,    0,      RELATIVE };
-  st["MYLIT"]  = { 0X1D,   0,      RELATIVE };
-  st["COUNT"]  = { 0X21,   0,      RELATIVE };
-  st["TABLE"]  = { 0X24,   0,      RELATIVE };
-  st["TABLE2"] = { 0X1794, 0,      RELATIVE };
-  st["TOTAL"]  = { 0X2F04, 0,      RELATIVE };
 
-  std::cout << to_string(st) << "\n";
+  std::ifstream file(argv[1]);
 
-  LiteralTable lt;
+  if (!file.is_open()) {
+    std::cout << "file open failed";
+    return 1;
+  }
 
-  lt["EOF"] = { 0x454f46, 0x2f07, 3 };
+  std::string line;
 
-  std::cout << to_string(lt) << "\n";
-  
+  int location_counter = 0;
+  std::string csect = "";
+
+  std::getline(file, line);
+
+  if (mnemonic_of(line) == "START") {
+    location_counter = std::stoi(operand_of(line));
+    csect = symbol_of(line);
+  }
+  else {
+    file.clear();
+    file.seekg(0, std::ios::beg);
+  }
+
+  do
+  {
+    std::getline(file, line);
+    // update symtab
+  } while (mnemonic_of(line) != "END");
+
   return 0;
 }
