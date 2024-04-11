@@ -16,18 +16,15 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  std::string line;
-
   int location_counter = 0;
-  std::string csect = "";
+  std::string line, csect = "";
 
   std::getline(file, line);
 
   if (mnemonic_of(line) == "START") {
     location_counter = std::stoi(operand_of(line));
     csect = symbol_of(line);
-  }
-  else {
+  } else {
     file.clear();
     file.seekg(0, std::ios::beg);
   }
