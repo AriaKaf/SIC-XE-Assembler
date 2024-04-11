@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[]) {
 
-  SymbolTable st;
+  SymbolTable symtab;
 
   std::ifstream file(argv[1]);
 
@@ -17,17 +17,12 @@ int main(int argc, char* argv[]) {
   }
 
   int location_counter = 0;
-  std::string line, csect = "";
+  std::string line;
 
-  std::getline(file, line);
+  for (std::getline(file, line); mnemonic_of(line) != "START"; std::getline(file, line));
 
-  if (mnemonic_of(line) == "START") {
-    location_counter = std::stoi(operand_of(line));
-    csect = symbol_of(line);
-  } else {
-    file.clear();
-    file.seekg(0, std::ios::beg);
-  }
+  location_counter = std::stoi(operand_of(line));
+  symtab.push_back(StabEntry(symbol_of(line), "", location_counter, 0, CSECT));
 
   do
   {
