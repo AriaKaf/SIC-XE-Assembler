@@ -1,0 +1,23 @@
+START    1000         
+        EXTDEF   DATAIN, DATAOUT  
+        EXTREF   ADDFUNC, SUBFUNC  
+
+        LDA      DATAIN       
+        ADD      #10          
+        STA      BUFFER       
+
+        LDB      #5           
+LOOP    +JSUB     ADDFUNC     
+        J        ENDLOOP      
+
+ENDLOOP LDB      BUFFER       
+        +JSUB     SUBFUNC     
+        JLT      LOOP         
+
+        STA      DATAOUT      
+
+        END             
+
+DATAIN  RESW     1            
+DATAOUT RESW     1            
+BUFFER  RESW     1            
