@@ -3,31 +3,40 @@
 #define TYPES_H
 
 #include <string>
-#include <vector>
+#include <unordered_map>
 
-enum Flag { RELATIVE, ABSOLUTE, NO_FLAG };
+enum Flag { RELATIVE, ABSOLUTE };
 
-struct StabEntry {
-  StabEntry(std::string csect, std::string symbol, int value, int length, Flag flag) :
-    csect(csect), symbol(symbol), value(value), length(length), flag(flag) {}
-  std::string csect;
-  std::string symbol;
-  int value;
-  int length;
-  Flag flag;
-};
-
-struct LtabEntry {
+struct CsectInfo {
   std::string name;
-  int operand;
   int address;
   int length;
 };
 
-typedef std::vector<StabEntry> SymbolTable;
-typedef std::vector<LtabEntry> LiteralTable;
+struct SymbolInfo {
+  int value;
+  Flag flag;
+};
 
-std::string to_string(const SymbolTable& stab);
-std::string to_string(const LiteralTable& ltab);
+class SymbolTable {
+
+public:
+  std::string to_string();
+
+  CsectInfo csect;
+  std::unordered_map<std::string, SymbolInfo> table;
+
+  const SymbolInfo& operator[](const std::string& key) const {
+    auto it = table.find(key);
+    if (it != table.end())
+      return it->second;
+    else
+      throw std::out_of_range("Key not found in SymbolTable");
+  }
+
+  SymbolInfo& operator[](const std::string& key) {
+    return table[key];
+  }
+};
 
 #endif
