@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     std::getline(file, line);
 
     if (is_a_comment(line))
-      continue;
+      continue; // dont do mnemonic == END check
 
     std::cout << line << "\n";
 
