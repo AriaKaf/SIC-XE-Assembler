@@ -1,9 +1,9 @@
 
 #include "types.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include <vector>
 
 std::string to_hex_string(int num, int width) {
   std::stringstream ss;
@@ -11,19 +11,20 @@ std::string to_hex_string(int num, int width) {
   return ss.str();
 }
 
-std::string to_string(const SymbolTable& stab) {
+std::string SymbolTable::to_string() {
 
   std::stringstream ss;
 
-  ss << std::hex << std::uppercase << "CSect   Symbol  Value   LENGTH  Flags:\n--------------------------------------\n";
+  ss << std::left << "CSect   Symbol  Value   LENGTH  Flags:\n--------------------------------------\n"
+     << std::setw(16) << csect.name << to_hex_string(csect.address, 6) << "  " << to_hex_string(csect.length, 6) << "\n";
 
-  for (int i = 0; i < stab.size(); i++)
-  {
-    if (!stab[i].csect.empty()) // the 'csect' entry requires special formatting
-      ss << std::left << std::setw(16) << stab[i].csect << to_hex_string(stab[i].value, 6) << "  " << to_hex_string(stab[i].length, 6) << "\n";
-    else
-      ss << "        " << std::left << std::setw(8) << stab[i].symbol << std::setw(16) << to_hex_string(stab[i].value, 6) << "RA"[stab[i].flag] << "\n";
-  }
+  std::vector<std::pair<std::string, SymbolInfo>> stab_sorted(table.begin(), table.end());
+
+  std::sort(stab_sorted.begin(), stab_sorted.end(),
+    [](const std::pair<std::string, SymbolInfo>& a, const std::pair<std::string, SymbolInfo>& b) { return a.second.value < b.second.value; });
+
+  for (auto& pair : stab_sorted)
+    ss << "        " << std::setw(8) << pair.first << std::setw(16) << to_hex_string(pair.second.value, 6) << "RA"[pair.second.flag] << "\n";
 
   return ss.str();
 }
