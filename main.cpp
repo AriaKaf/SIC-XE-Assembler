@@ -2,8 +2,8 @@
 #include "parse.h"
 #include "types.h"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 /*
 g++ -std=c++11 main.cpp types.cpp parse.cpp -oasl && ./asl test.sic
