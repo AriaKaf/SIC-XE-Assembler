@@ -11,10 +11,8 @@ g++ -std=c++11    main.cpp types.cpp parse.cpp optab.cpp -oasl && ./asl test.sic
 g++ -g -std=c++11 main.cpp types.cpp parse.cpp optab.cpp -odebug && gdb debug
 
 TODO
-handle no start directive
 2.3.2 symbol defining statements
-handle sourcecode litpools
-literal length in bytes could decimal (odd # of hex chars)
+handle sourcecode litpools (can ignore (?))
 calculate flags
 */
 
@@ -41,7 +39,7 @@ int main(int argc, char* argv[]) {
 
   for (std::getline(file, line); is_a_comment(line); std::getline(file, line)); // get the first non-comment line
 
-  location_counter = std::stoi(operand_of(line));
+  location_counter = mnemonic_of(line) == "START" ? std::stoi(operand_of(line)) : 0;
   symtab.csect = { symbol_of(line), location_counter, 0 };
 
   do // first pass to fill up the symtab & littab
@@ -52,7 +50,7 @@ int main(int argc, char* argv[]) {
       continue;
 
     if (operand_prefix_of(line) == '=' && !littab.contains(line.substr(20, line.substr(20).find("\'"))))
-    { // found a new literal in this line
+    { // found a new literal on this line
       char literal_prefix = line[18];
 
       std::string literal_name;
@@ -73,17 +71,10 @@ int main(int argc, char* argv[]) {
     }
 
     if (!symbol_of(line).empty() && line[0] != '*')
-      symtab[symbol_of(line)] = { location_counter, RELATIVE };
+      symtab.handle(line, location_counter);
 
     if (mnemonic_of(line) == "END" || mnemonic_of(line) == "LTORG")
-    { // create a 'literal pool' (calculate all currently unresolved literal addresses)
-      for (Literal& l : littab.literals) {
-        if (l.address == NO_ADDR) {
-          l.address = location_counter;
-          location_counter += l.length;
-        }
-      }
-    }
+      littab.pool(location_counter);
 
     location_counter += instruction_length_of(line);
   } while (mnemonic_of(line) != "END");
