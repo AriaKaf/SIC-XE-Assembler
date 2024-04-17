@@ -64,8 +64,7 @@ int main(int argc, char* argv[]) {
       if (literal_prefix == 'X') {
         literal_value = std::stoi(literal_name, nullptr, 16);
         literal_length = literal_name.size() / 2;
-      }
-      else if (literal_prefix == 'C') {
+      } else if (literal_prefix == 'C') {
         literal_value = ascii_to_int(literal_name);
         literal_length = literal_name.size();
       }
