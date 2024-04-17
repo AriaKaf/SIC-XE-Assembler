@@ -28,9 +28,9 @@ struct Literal {
   int length;
 };
 
-class LiteralTable {
-
+class LiteralTable {  
 public:
+  void pool(int& locctr);
   std::vector<Literal> literals;
   bool contains(const std::string& name);
   std::string to_string();
@@ -39,18 +39,19 @@ public:
 class SymbolTable {
 
 public:
+  void handle(const std::string& line, int locctr);
+  bool contains(const std::string& key) const;
   std::string to_string();
 
   CsectInfo csect;
   std::unordered_map<std::string, SymbolInfo> table;
 
   const SymbolInfo& operator[](const std::string& key) const {
-    return table.find(key)->second;
-    /*auto it = table.find(key);
+    auto it = table.find(key);
     if (it != table.end())
       return it->second;
     else
-      throw std::out_of_range("Key not found in SymbolTable");*/
+      throw std::out_of_range("Key not found in SymbolTable");
   }
 
   SymbolInfo& operator[](const std::string& key) {
