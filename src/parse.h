@@ -2,15 +2,18 @@
 #ifndef PARSE_H
 #define PARSE_H
 
+#include "types.h"
+
 #include <string>
 
+Flag evaluate_flag(const std::string& expr, const SymbolTable& stab);
+
+int evaluate_expr(const std::string& expr, const SymbolTable& stab, int locctr);
 int ascii_to_int(const std::string& ascii);
+int instruction_length_of(const std::string& line);
 
 char mnemonic_prefix_of(const std::string& line);
-
 char operand_prefix_of(const std::string& line);
-
-int instruction_length_of(const std::string& line);
 
 bool is_a_comment(const std::string& line);
 
