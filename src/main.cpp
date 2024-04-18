@@ -13,6 +13,7 @@ g++ -std=c++11    main.cpp types.cpp parse.cpp optab.cpp format.cpp -oasl && ./a
 g++ -g -std=c++11 main.cpp types.cpp parse.cpp optab.cpp format.cpp -odebug && gdb debug
 
 TODO
+wants specific number of cpp/h?
 don't print comments before start
 ",X" on format 4?
 2's complement for disp
