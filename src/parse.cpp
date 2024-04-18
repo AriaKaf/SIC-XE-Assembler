@@ -1,9 +1,110 @@
 
+#include "format.h"
 #include "optab.h"
 #include "parse.h"
 
 #include <iomanip>
 #include <sstream>
+
+bool is_numeric(const std::string& s);
+
+std::string generate_object_code(const std::string& line,
+  const SymbolTable& stab,
+  const LiteralTable& littab,
+  int locctr,
+  int pc,
+  int base)
+{
+  if (optab.find(mnemonic_of(line)) == optab.end())
+    return "";
+
+  std::string operand = operand_of(line);
+
+  OpInfo info = optab[mnemonic_of(line)];
+
+  char mnemonic_prefix = mnemonic_prefix_of(line);
+  char operand_prefix = operand_prefix_of(line);
+
+  int instruction_format = mnemonic_prefix == '+' ? FORMAT_4 : info.format;
+  int obj = info.opcode << 8 * (instruction_format - 1);
+
+  int nixbpe = 0, disp = 0;
+
+  std::stringstream ss;
+  ss << std::right << std::setw(instruction_format * 2) << std::setfill('0') << std::hex << std::uppercase;
+
+  if (instruction_format == FORMAT_1)
+  {
+    ss << obj;
+    return ss.str();
+  }
+
+  if (instruction_format == FORMAT_2)
+  {
+    std::string operand_1 = operand.substr(0, operand.find(","));
+    std::string operand_2 = operand.find(",") == std::string::npos ? "" : operand.substr(operand.find(",") + 1);
+
+    obj |= register_table[operand_1] << 4;
+
+    if (!operand_2.empty())
+      obj |= is_numeric(operand_2) ? std::stoi(operand_2) : register_table[operand_2];
+
+    ss << obj;
+    return ss.str();
+  }
+
+  // 00000000 00000000 00000000
+  //       ni xbpe       nixbpe
+
+  if (instruction_format == FORMAT_3)
+  {
+    if (mnemonic_of(line) == "RSUB")
+      return "4F0000";
+
+    obj |= (base == NO_ADDR ? FLAG_P : FLAG_B) << 12;
+
+    if (operand_prefix == '@')
+      obj |= FLAG_N << 12;
+    else if (operand_prefix == '#')
+      obj |= FLAG_I << 12;
+    else
+      obj |= (FLAG_N | FLAG_I) << 12;
+
+    if (operand.find(",X") != std::string::npos) {
+      obj |= FLAG_X << 12;
+      operand = operand.substr(0, operand.find(","));
+    }
+
+    if (obj & (FLAG_I << 12) && !(obj & (FLAG_N << 12)))
+      obj &= ~(FLAG_P << 12);
+
+    if (!operand.empty())
+      if ((obj & (FLAG_B << 12)) && (evaluate_expr(operand, stab, locctr) < base))
+        obj ^= ((FLAG_B | FLAG_P) << 12);
+  }
+
+  // 00000000 00000000 00000000 00000000
+  //       ni xbpe                nixbpe
+
+  if (instruction_format == FORMAT_4)
+  {
+    obj |= FLAG_E << 20;
+      
+    if (operand_prefix == '@')
+      obj |= FLAG_N << 20;
+    else if (operand_prefix == '#')
+      obj |= FLAG_I << 20;
+    else
+      obj |= (FLAG_N | FLAG_I) << 20;
+  }
+
+  ss << obj;
+  return ss.str();
+}
+
+std::string literal_name_of(const std::string& line) {
+  return line.substr(20, line.substr(20).find("\'"));
+}
 
 void trim(std::string& s) {
   size_t begin = s.find_first_not_of(" \t\r");
@@ -32,11 +133,12 @@ size_t least_precedence_operator_pos(const std::string& str) {
   if (str.find_first_of("+-") != std::string::npos) {
     for (int i = str.size() - 1; i >= 0; i--)
       if (str[i] == '+' || str[i] == '-')
-	return i;
-  } else {
+        return i;
+  }
+  else {
     for (int i = str.size() - 1; i >= 0; i--)
       if (str[i] == '*' || str[i] == '/')
-	return i;
+        return i;
   }
 }
 
@@ -49,8 +151,8 @@ Flag evaluate_flag(const std::string& expr, const SymbolTable& stab) {
   std::istringstream is(expr);
 
   is >> std::skipws;
-  
-  while (is >> c && std::string("*=-/").find(c) == std::string::npos)
+
+  while (is >> c && std::string("*+-/").find(c) == std::string::npos)
     token << c;
   last_operator = c;
 
@@ -68,7 +170,8 @@ Flag evaluate_flag(const std::string& expr, const SymbolTable& stab) {
       }
       last_operator = c;
       token.str("");
-    } else
+    }
+    else
       token << c;
   }
 
@@ -76,9 +179,9 @@ Flag evaluate_flag(const std::string& expr, const SymbolTable& stab) {
     if (last_operator == '+')
       relative_additions++;
     else if (last_operator == '-')
-      relative_subtractions++;  
+      relative_subtractions++;
   }
-  
+
   return relative_additions == relative_subtractions ? ABSOLUTE : RELATIVE;
 }
 
@@ -91,10 +194,10 @@ int evaluate_expr(const std::string& expr, const SymbolTable& stab, int locctr) 
 
   switch (expr[split])
   {
-    case '+': return evaluate_expr(expr.substr(0, split), stab, locctr) + evaluate_expr(expr.substr(split + 1), stab, locctr);
-    case '-': return evaluate_expr(expr.substr(0, split), stab, locctr) - evaluate_expr(expr.substr(split + 1), stab, locctr);
-    case '*': return evaluate_expr(expr.substr(0, split), stab, locctr) * evaluate_expr(expr.substr(split + 1), stab, locctr);
-    case '/': return evaluate_expr(expr.substr(0, split), stab, locctr) / evaluate_expr(expr.substr(split + 1), stab, locctr);
+  case '+': return evaluate_expr(expr.substr(0, split), stab, locctr) + evaluate_expr(expr.substr(split + 1), stab, locctr);
+  case '-': return evaluate_expr(expr.substr(0, split), stab, locctr) - evaluate_expr(expr.substr(split + 1), stab, locctr);
+  case '*': return evaluate_expr(expr.substr(0, split), stab, locctr) * evaluate_expr(expr.substr(split + 1), stab, locctr);
+  case '/': return evaluate_expr(expr.substr(0, split), stab, locctr) / evaluate_expr(expr.substr(split + 1), stab, locctr);
   }
 }
 
@@ -115,7 +218,7 @@ int instruction_length_of(const std::string& line) {
     return mnemonic_prefix_of(line) == '+' ? 4 : optab[mnemonic].format;
   else if (mnemonic == "WORD")
     return 3;
-  
+
   std::string operand = operand_of(line);
 
   if (mnemonic == "RESW")
@@ -159,6 +262,6 @@ std::string operand_of(const std::string& line) {
 
   if (line.size() >= 42 && !is_whitespace(line.substr(41)))
     return line.substr(18, line.substr(18, 23).find_last_not_of(" \t\r") + 1);
-  
+
   return line.size() < 19 || is_whitespace(line.substr(18)) ? "" : line.substr(18, line.substr(18).find_last_not_of(" \t\r") + 1);
 }

@@ -1,10 +1,19 @@
 
-#include "parse.h"
+
 #include "types.h"
+
+#include "format.h"
+#include "parse.h"
 
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+
+void LiteralTable::set_visited(const std::string& name) {
+  for (Literal& l : literals)
+    if (l.name == name)
+      l.visited = true;
+}
 
 void SymbolTable::handle(const std::string& line, int locctr) {
   if (line.find("EQU") == std::string::npos)
@@ -17,14 +26,8 @@ bool SymbolTable::contains(const std::string& key) const {
   return table.find(key) != table.end();
 }
 
-std::string to_hex_string(int num, int width) {
-  std::stringstream ss;
-  ss << std::right << std::setw(width) << std::hex << std::uppercase << std::setfill('0') << num;
-  return ss.str();
-}
-
 std::string LiteralTable::to_string() {
-  
+
   std::stringstream ss;
   ss << std::left << std::uppercase << std::hex << "Name  Operand   Address  Length:\n--------------------------------\n";
 
@@ -46,7 +49,7 @@ std::string SymbolTable::to_string() {
   std::stringstream ss;
 
   ss << std::left << "CSect   Symbol  Value   LENGTH  Flags:\n--------------------------------------\n"
-     << std::setw(16) << csect.name << to_hex_string(csect.address, 6) << "  " << to_hex_string(csect.length, 6) << "\n";
+    << std::setw(16) << csect.name << to_hex_string(csect.address, 6) << "  " << to_hex_string(csect.length, 6) << "\n";
 
   std::vector<std::pair<std::string, SymbolInfo>> stab_sorted(table.begin(), table.end());
 

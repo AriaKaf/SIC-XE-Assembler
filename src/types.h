@@ -26,10 +26,14 @@ struct Literal {
   int value;
   int address;
   int length;
+  bool defined;
+  bool visited;
+  char prefix;
 };
 
-class LiteralTable {  
+class LiteralTable {
 public:
+  void set_visited(const std::string& name);
   void pool(int& locctr);
   std::vector<Literal> literals;
   bool contains(const std::string& name);
@@ -47,11 +51,12 @@ public:
   std::unordered_map<std::string, SymbolInfo> table;
 
   const SymbolInfo& operator[](const std::string& key) const {
-    auto it = table.find(key);
+    return table.find(key)->second;
+    /*auto it = table.find(key);
     if (it != table.end())
       return it->second;
     else
-      throw std::out_of_range("Key not found in SymbolTable");
+      throw std::out_of_range("Key not found in SymbolTable");*/
   }
 
   SymbolInfo& operator[](const std::string& key) {

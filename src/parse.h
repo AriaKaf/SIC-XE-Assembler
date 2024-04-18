@@ -17,10 +17,16 @@ char operand_prefix_of(const std::string& line);
 
 bool is_a_comment(const std::string& line);
 
+std::string generate_object_code(const std::string& line,
+  const SymbolTable& stab,
+  const LiteralTable& littab,
+  int locctr,
+  int program_counter,
+  int base);
+
 std::string symbol_of(const std::string& line);
-
 std::string mnemonic_of(const std::string& line);
-
 std::string operand_of(const std::string& line);
+std::string literal_name_of(const std::string& line);
 
 #endif
