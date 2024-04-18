@@ -9,11 +9,11 @@
 bool is_numeric(const std::string& s);
 
 std::string generate_object_code(const std::string& line,
-  const SymbolTable& stab,
-  const LiteralTable& littab,
-  int locctr,
-  int pc,
-  int base)
+                                 const SymbolTable& stab,
+                                 const LiteralTable& littab,
+                                 int locctr,
+                                 int pc,
+                                 int base)
 {
   if (optab.find(mnemonic_of(line)) == optab.end())
     return "";
