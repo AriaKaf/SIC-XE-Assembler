@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
   std::ifstream source(argv[1]);
 
   if (!source.is_open()) {
-    std::cout << "source open failed";
+    std::cout << "file open failed";
     return 1;
   }
 
