@@ -1,11 +1,16 @@
-
-
+/*
+  Names:Aria Kafie, Htet Hnin Su Wai
+  Class Accounts : cssc4055, cssc4043
+  Class Information : CS 530, Spring 2024
+  Assignment Information : Assignment #2, XE assembler program
+  File name : optab.cpp
+*/
 #include "optab.h"
 
-std::unordered_map<std::string, OpInfo> optab; // global lookup table objects
+std::unordered_map<std::string, OpInfo> optab; // global table objects
 std::unordered_map<std::string, int> register_table;
 
-void OpTab::init() {
+void OpTab::init() { // initializes every entry in the optab map
   optab["ADDR"]   = { FORMAT_2, 0x90 };
   optab["ADD"]    = { FORMAT_3, 0x18 };
   optab["ADDF"]   = { FORMAT_3, 0x58 };
@@ -66,7 +71,7 @@ void OpTab::init() {
   optab["TIO"]    = { FORMAT_1, 0xF8 };
   optab["WD"]     = { FORMAT_3, 0xDC };
 
-  register_table["A"] = 0;
+  register_table["A"] = 0; // initialize every register mnemonic with its corresponding info
   register_table["X"] = 1;
   register_table["L"] = 2;
   register_table["B"] = 3;
